@@ -46,6 +46,14 @@ public:
         }
     }
 
+    float get_avg() {
+        float sum = 0;
+        for (int j=0; j<size; j++){
+            sum += (float) container[j]/size;
+        }
+        return sum;
+    }
+
     void f_print_nz(std::ostream &out) const {
         for (unsigned int j=0; j<size; j++){
             if (container[j]!=0||j==0||j==size-1) out << j << " " << container[j] << endl;
@@ -119,6 +127,10 @@ public:
         return -1;
 
          */
+    }
+
+    virtual ~DynamicVector() {
+        delete[] container;
     }
 
 

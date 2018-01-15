@@ -15,10 +15,11 @@ int main() {
     int  start;
 
     //string filename = "../graphs/com-youtube.ungraph.graph";
-    string graph_fn = "../sample/sample.graph";
-    string log_fn = "../sample/sample_comm.log";
-    string size_hist_fn = "../sample/comm_size_hist.dat";
-    string detec_comm_fn = "../sample/nr_detec.dat";
+    string graph_fn = "../YouTube/com-youtube.ungraph";
+    string log_fn = "../YouTube/comm.log";
+    string size_hist_fn = "../YouTube/comm_size_hist.dat";
+    string size_cdf_fn = "../YouTube/comm_size_cdf.dat";
+    string detec_comm_fn = "../YouTube/nr_detec_hist.dat";
 
     // ------------------------------------------------------
 
@@ -40,21 +41,24 @@ int main() {
     cout << time(nullptr)-start << "s: " << "[EXECUTION] - main(): loading adjacency list..." << endl;
     g.loadFromFile(graph_fn, debug);
     cout << time(nullptr)-start << "s: " << "[EXECUTION] - main(): done!..." << endl;
-
+/*
     cout << time(nullptr)-start << "s: " << "[EXECUTION] - main(): printing..." << endl;
     g.print(debug);
     cout << time(nullptr)-start << "s: " << "[EXECUTION] - main(): done!..." << endl;
+*/
 
-    cout << time(nullptr)-start << "s: " << "[EXECUTION] - main(): finding dominant lable..." << endl;
+    cout << time(nullptr)-start << "s: " << "[EXECUTION] - main(): executung lable propagation..." << endl;
 
     DynamicVector<unsigned int> n_detec_comm;
     unsigned int nr;
 
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 1; i++) {
         //sprintf(log_fn, "../sample/sample_comm%d.log", i);
         //cout << log_fn << endl;
-        nr = CommunityDetection::lable_propagation(g,log_fn, size_hist_fn, true, false);
+        cout << time(nullptr)-start << "s: " << "[EXECUTION] - main(): >>> call " << i << endl;
+        nr = CommunityDetection::lable_propagation(g,log_fn, size_hist_fn, true, true);
         n_detec_comm[nr]++;
+        cout << time(nullptr)-start << "s: " << "[EXECUTION] - main(): >>>>>> detected " << nr << endl;
     }
 
     cout << time(nullptr)-start << "s: " << "[EXECUTION] - main(): done!..." << endl;
@@ -63,6 +67,11 @@ int main() {
     out.open(detec_comm_fn, ios::out);
     n_detec_comm.f_print_nz(out);
     out.close();
+
+    cout << time(nullptr)-start << "s: " << "[EXECUTION] - main(): writing hist and cdf..." << endl;
+    CommunityDetection::compute_ic_cdf(size_hist_fn, size_cdf_fn, false);
+    cout << time(nullptr)-start << "s: " << "[EXECUTION] - main(): done!..." << endl;
+
 
     return 0;
 }

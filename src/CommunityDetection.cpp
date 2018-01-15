@@ -36,30 +36,35 @@ unsigned int CommunityDetection::lable_propagation(AdjacencyList &graph, string 
         label[n] = graph.nodes[n].ID;
     }
 
-    // scrumble the array
-    for (n = graph.getNumNodes(); n > 0; n--) {
 
-        j = rand()%n+1;
-        temp = (order[n] != 0) ? order[n] : n;
-        order[n] = (order[j] != 0) ? order[j] : j;
-        order[j] = temp;
-    }
-
+/*
     if (debug) {
         for (n = 1; n <= graph.getNumNodes(); n++) {
             cout << order[n] << " ";
         }
         cout << endl;
-    }
+    }*/
 
 
 
-    changed = true;
+
     iterations = 0;
-    while (changed){
+    do {
 
-        iterations++;
+        changed = false;
+
+        if (++iterations>7) break;
         if (debug) cout << "[DEBUG] CommunityDetection::lable_propagation(): ***Iteration #" << iterations << endl;
+
+
+        // scrumble the array
+        for (unsigned int k = graph.getNumNodes(); k > 0; k--) {
+
+            j = rand()%k+1;
+            temp = (order[k] != 0) ? order[k] : k;
+            order[k] = (order[j] != 0) ? order[j] : j;
+            order[j] = temp;
+        }
 
         // cycle on every nodes
         for (unsigned int i = 1; i<=graph.getNumNodes(); i++) {
@@ -68,102 +73,151 @@ unsigned int CommunityDetection::lable_propagation(AdjacencyList &graph, string 
             if (completed[n]) continue;*/
 
             n = order[i];
-
+            //++ lbl_counter[n];
             // find max occurring lable in the neighborhood
             max_occurrencies = 0;
             domin_label = 0;
             lbl_counter.clear();
+
             for (unsigned int nb_idx = 0; nb_idx < graph.nodes[n].degree; nb_idx++){
 
 
                 nbr = *graph.getNeighbour(n, nb_idx);
                 // read the lable
-                l = label[nbr.ID];
+                //l = label[nbr.ID];
                 // increment the counter in the corrisponding position
-                ++ lbl_counter[l];
-                if (lbl_counter[l] > max_occurrencies) {
-                    max_occurrencies = lbl_counter[l];
-                    domin_label = l;
+                //++ lbl_counter[l];
+                if (++lbl_counter[label[nbr.ID]] > max_occurrencies) {
+                    max_occurrencies = lbl_counter[label[nbr.ID]];
+                    domin_label = label[nbr.ID];
                 }
 
-                if (debug) cout << "[DEBUG] CommunityDetection::label_propagation(): n=" << n << " nb=" << nbr.ID
-                                << " lbl=" << label[nbr.ID] << " [+1] -> #=" << lbl_counter[label[nbr.ID]] << endl;
+                //if (debug) cout << "[DEBUG] CommunityDetection::label_propagation(): n=" << n << " nb=" << nbr.ID
+                 //               << " lbl=" << label[nbr.ID] << " [+1] -> #=" << lbl_counter[label[nbr.ID]] << endl;
 
 
             }
 
-            if (debug) cout << "[DEBUG] CommunityDetection::label_propagation(): >>> n=" << n << " dom_lbl="
-                            << domin_label << "(" << max_occurrencies << ")" ;
+            //if (debug) cout << "[DEBUG] CommunityDetection::label_propagation(): >>> n=" << n << " dom_lbl="
+             //               << domin_label << "(" << max_occurrencies << ")" ;
 
             if (label[n]!=domin_label){
-                if (debug) cout << " >>> lbl was: " << label[n] << " -> setting to: " << domin_label << endl;
-
-                communities[label[n]].erase(n);
-                // check if is empty so delete the community
-                if (communities[label[n]].size()==0){
-                    communities.erase(label[n]);
-                }
+                //if (debug) cout << " >>> lbl was: " << label[n] << " -> setting to: " << domin_label << endl;
                 label[n] = domin_label;
-                communities[domin_label].insert(n);
-
                 changed = true;
 
-            } else {
-                if (debug) cout << " >>> label unchanged " << label[n] << endl;
-                communities[label[n]].insert(n);
-                changed = false;
             }
 
         }
 
 
+    } while (changed);
+
+    for (n=1; n<=graph.getNumNodes(); n++){
+        communities[label[n]].insert(n);
     }
 
 
-    /*
-    if (append)
-        logfile.open(log_fn, ios::app);
-    else
-        logfile.open(log_fn, ios::out);
+
+    logfile.open(log_fn, ios::app);
 
 
     map<unsigned int, set<unsigned int> >::iterator c_it;
     set<unsigned int>::iterator n_it;
+    float avg_size = 0;
 
 
     if (debug) cout << "[DEBUG] CommunityDetection::lable_propagation(): DETECTED COMMUNITIES: " << communities.size() << endl;
     if (append) logfile << "# ----------------------------------------------------------------" << endl;
+
     logfile << "# nr communities: " << communities.size() << endl;
     logfile << "# lbl size : n1 n2 n3 ..." << endl;
+
     for (c_it = communities.begin(); c_it!=communities.end(); ++c_it){
 
         size_hist[c_it->second.size()]++;
+        avg_size += (float) c_it->second.size()/communities.size();
 
-        if (debug) cout << "lbl: " << c_it->first << "(" << c_it->second.size() << ") N={";
+        //if (debug) cout << "lbl: " << c_it->first << "(" << c_it->second.size() << ") N={";
         logfile << c_it->first << " " << c_it->second.size() << " : ";
         for (n_it = c_it->second.begin(); n_it!=c_it->second.end(); ++n_it){
-            if (debug) cout << *n_it << " ";
+            //if (debug) cout << *n_it << " ";
             logfile << *n_it << " ";
         }
 
-        if (debug) cout << "}" << endl;
+        //if (debug) cout << "}" << endl;
         logfile << endl;
     }
 
     histfile.open(size_hist_fn, ios::out);
-    histfile.open(size_hist_fn, ios::app);
 
+    //histfile << "# average= " << avg_size << endl;
+    if (debug) cout << "# average= " << avg_size << endl;
     size_hist.f_print_nz(histfile);
 
     logfile.close();
+    histfile.close();
+
+
 
     delete[] order;
     delete[] label;
 
-    */
+
 
     return  communities.size();
 
     }
 
+
+void CommunityDetection::compute_ic_cdf(string distr_fn, string cdf_fn, bool debug) {
+
+    // Variables
+    fstream      infile;
+    fstream      outfile;
+    unsigned int s;     // size
+    unsigned int occ;   // occurencies
+    unsigned int cum;   // cumulative occurrencies
+    // ---------------------------------------------------------------------------------------------
+
+
+    if (debug) cout << "[DEBUG] - CommunityDetection::compute_ic_cdf: starting the function..." << endl;
+
+    if (debug)
+        cout << "[DEBUG] - CommunityDetection::compute_ic_cdf: opening the file..." << endl;
+
+    outfile.open(cdf_fn, ios::out);
+
+    infile.open(distr_fn, ios::in);
+
+    if(debug) cout <<  "[DEBUG] - CommunityDetection::compute_ic_cdf: graph opening succeed! computing cumulative distribution..." << endl;
+
+    s = occ = -1;
+    cum = 0;
+
+    while (!infile.eof()) {
+        // t occ
+        infile >> s    // size
+               >> occ; // occ
+
+        if (s == -1 || occ == -1) {
+            continue;
+        }
+
+        if (debug) cout << s << " " << occ << endl;
+
+        // accumulate occurrences and write to file
+        cum += occ;
+        outfile << s << " " << cum << endl;
+
+
+    }
+
+
+    if (debug) cout << "[DEBUG] - CommunityDetection::compute_ic_cdf: done" << endl;
+
+    infile.close();
+    outfile.close();
+
+}
 
