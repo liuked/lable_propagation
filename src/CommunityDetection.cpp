@@ -7,6 +7,8 @@
 
 unsigned int CommunityDetection::lable_propagation(AdjacencyList &graph, string log_fn, string size_hist_fn, bool append, bool debug) {
 
+    int lbl_start = (int)time(nullptr);
+
     bool changed;
     unsigned int *order = new unsigned int[graph.getNumNodes() + 1]();
     unsigned int *label = new unsigned int[graph.getNumNodes() + 1]();
@@ -53,8 +55,9 @@ unsigned int CommunityDetection::lable_propagation(AdjacencyList &graph, string 
 
         changed = false;
 
-        if (++iterations>7) break;
-        if (debug) cout << "[DEBUG] CommunityDetection::lable_propagation(): ***Iteration #" << iterations << endl;
+        ++iterations;
+        //if (++iterations>7) break;
+        if (debug) cout << time(nullptr)-lbl_start << "s: "  << "[DEBUG] CommunityDetection::lable_propagation(): ***Iteration #" << iterations << endl;
 
 
         // scrumble the array
@@ -119,7 +122,7 @@ unsigned int CommunityDetection::lable_propagation(AdjacencyList &graph, string 
 
 
 
-    logfile.open(log_fn, ios::app);
+    logfile.open(log_fn, ios::out);
 
 
     map<unsigned int, set<unsigned int> >::iterator c_it;
@@ -128,10 +131,10 @@ unsigned int CommunityDetection::lable_propagation(AdjacencyList &graph, string 
 
 
     if (debug) cout << "[DEBUG] CommunityDetection::lable_propagation(): DETECTED COMMUNITIES: " << communities.size() << endl;
-    if (append) logfile << "# ----------------------------------------------------------------" << endl;
+    //if (append) logfile << "# ----------------------------------------------------------------" << endl;
 
     logfile << "# nr communities: " << communities.size() << endl;
-    logfile << "# lbl size : n1 n2 n3 ..." << endl;
+    logfile << "# size n1 n2 n3 ..." << endl;
 
     for (c_it = communities.begin(); c_it!=communities.end(); ++c_it){
 
@@ -139,7 +142,8 @@ unsigned int CommunityDetection::lable_propagation(AdjacencyList &graph, string 
         avg_size += (float) c_it->second.size()/communities.size();
 
         //if (debug) cout << "lbl: " << c_it->first << "(" << c_it->second.size() << ") N={";
-        logfile << c_it->first << " " << c_it->second.size() << " : ";
+        //logfile << c_it->first << " "
+        logfile << c_it->second.size() << " ";
         for (n_it = c_it->second.begin(); n_it!=c_it->second.end(); ++n_it){
             //if (debug) cout << *n_it << " ";
             logfile << *n_it << " ";
@@ -152,7 +156,9 @@ unsigned int CommunityDetection::lable_propagation(AdjacencyList &graph, string 
     histfile.open(size_hist_fn, ios::out);
 
     //histfile << "# average= " << avg_size << endl;
-    if (debug) cout << "# average= " << avg_size << endl;
+    cout << "# nr communities: " << communities.size() << endl;
+    cout << "# average size:   " << avg_size << endl;
+    logfile << "# average size:  " << avg_size << endl;
     size_hist.f_print_nz(histfile);
 
     logfile.close();

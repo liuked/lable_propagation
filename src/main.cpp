@@ -15,11 +15,11 @@ int main() {
     int  start;
 
     //string filename = "../graphs/com-youtube.ungraph.graph";
-    string graph_fn = "../YouTube/com-youtube.ungraph";
-    string log_fn = "../YouTube/comm.log";
-    string size_hist_fn = "../YouTube/comm_size_hist.dat";
-    string size_cdf_fn = "../YouTube/comm_size_cdf.dat";
-    string detec_comm_fn = "../YouTube/nr_detec_hist.dat";
+    string graph_fn = "../sample/sample.graph";
+    string log_fn = "../sample/comm.log";
+    string size_hist_fn = "../sample/comm_size_hist.dat";
+    string size_cdf_fn = "../sample/comm_size_cdf.dat";
+    string detec_comm_fn = "../sample/null.dat";
 
     // ------------------------------------------------------
 
@@ -56,7 +56,7 @@ int main() {
         //sprintf(log_fn, "../sample/sample_comm%d.log", i);
         //cout << log_fn << endl;
         cout << time(nullptr)-start << "s: " << "[EXECUTION] - main(): >>> call " << i << endl;
-        nr = CommunityDetection::lable_propagation(g,log_fn, size_hist_fn, true, true);
+        nr = CommunityDetection::lable_propagation(g,log_fn, size_hist_fn, true, false);
         n_detec_comm[nr]++;
         cout << time(nullptr)-start << "s: " << "[EXECUTION] - main(): >>>>>> detected " << nr << endl;
     }
